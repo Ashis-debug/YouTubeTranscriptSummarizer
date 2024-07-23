@@ -4,14 +4,8 @@ import streamlit as st
 from youtube_api.youtube import extract_video_id, get_youtube_transcript
 from youtube_api.ai import generate_summary
 from youtube_api.ui import render_ui
-from dotenv import load_dotenv
-import os
 
-# Load environment variables
-load_dotenv()
-
-# Load API key
-API_KEY = os.getenv('GENAI_API_KEY')
+API_KEY="AIzaSyDcLJiSbmkhZAmb2wfq4h5PPHU6lPCPysU"
 
 if API_KEY is None:
     st.error("Please set the API key in the environment variable 'GENAI_API_KEY'")
