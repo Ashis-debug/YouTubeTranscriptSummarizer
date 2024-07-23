@@ -1,99 +1,75 @@
+# Main.py
+
 import streamlit as st
-from youtube_transcript_api import YouTubeTranscriptApi
-import google.generativeai as genai
-import re
+from youtube_api.youtube import extract_video_id, get_youtube_transcript
+from youtube_api.ai import generate_summary
+from youtube_api.ui import render_ui
+from dotenv import load_dotenv
+import os
 
-# Configure Google Generative AI API
-API_KEY = "AIzaSyDcLJiSbmkhZAmb2wfq4h5PPHU6lPCPysU"
-genai.configure(api_key=API_KEY)
+# Load environment variables
+load_dotenv()
 
+# Load API key
+API_KEY = os.getenv('GENAI_API_KEY')
 
-def extract_video_id(youtube_url):
-    """
-    Extract the video ID from a YouTube URL.
-    """
-    pattern = r"(?:v=|\/)([0-9A-Za-z_-]{11}).*"
-    match = re.search(pattern, youtube_url)
-    if match:
-        return match.group(1)
-    return None
+if API_KEY is None:
+    st.error("Please set the API key in the environment variable 'GENAI_API_KEY'")
+else:
+    import google.generativeai as genai
+    genai.configure(api_key=API_KEY)
 
+# Render UI
+render_ui()
 
-def get_youtube_transcript(video_id):
-    """
-    Get the transcript of a YouTube video using its video ID.
-    """
-    transcript = YouTubeTranscriptApi.get_transcript(video_id)
-    message = " ".join([text['text'] for text in transcript])
-    return message
+# Application Logic
+def run_app():
+    # Input for YouTube URL
+    youtube_url = st.text_input("Enter YouTube Video URL:", "")
 
+    # Options for user selection
+    option_summary = st.checkbox("Do you want the summary of the video?", key="summary")
+    option_mcq = st.checkbox("Do you want some MCQ questions related to the video?", key="mcq")
+    option_notes = st.checkbox("Do you want the complete notes of the video?", key="notes")
 
-def generate_summary(prompt, message):
-    """
-    Generate summary or questions using Google Generative AI.
-    """
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    response = model.generate_content(prompt + "\n" + message)
-    return response.text
+    # Submit button
+    submit = st.button("Submit")
 
+    if submit:
+        if youtube_url:
+            video_id = extract_video_id(youtube_url)
+            if video_id:
+                transcript = get_youtube_transcript(video_id)
 
-st.set_page_config(page_title="YouTube Transcript Summarizer", layout="centered")
+                if option_summary + option_mcq + option_notes > 1:
+                    st.error("Please select only one option at a time.")
+                elif option_summary + option_mcq + option_notes == 0:
+                    st.info("Select an option to proceed.")
+                else:
+                    if option_summary:
+                        prompt_summary = "Act as a summarizer and write the summary as a paragraph for the input with at least 500 words"
+                        with st.spinner('Generating summary...'):
+                            summary = generate_summary(prompt_summary, transcript)
+                            st.subheader("Summary")
+                            st.write(summary)
 
-st.title("YouTube Transcript Summarizer and Question Generator Please Add 15-20 Minutes video URL for better results")
-st.markdown("""
-<style>
-body {
-    background-color: #f0f2f6;
-    color: #333333;
-}
-.main {
-    background-color: #ffffff;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-h1 {
-    color: #4CAF50;
-}
-.stButton>button {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-}
-.stButton>button:hover {
-    background-color: #45a049;
-}
-</style>
-""", unsafe_allow_html=True)
+                    if option_mcq:
+                        prompt_questions = "Act as a summarizer and write 20-25 MCQ questions based on the input given"
+                        with st.spinner('Generating MCQ questions...'):
+                            questions = generate_summary(prompt_questions, transcript)
+                            st.subheader("MCQ Questions")
+                            st.write(questions)
 
-youtube_url = st.text_input("Enter YouTube Video URL:", "")
-if st.button("Generate Transcript and Questions"):
-    if youtube_url:
-        video_id = extract_video_id(youtube_url)
-        if video_id:
-            with st.spinner('Fetching transcript...'):
-                try:
-                    transcript = get_youtube_transcript(video_id)
-                    st.success("Transcript fetched successfully!")
-
-                    prompt_summary = "act as a summarizer and write the summary in points for the input with 250 words"
-                    prompt_questions = "act as a summarizer and write some MCQ questions based on the input given"
-
-                    with st.spinner('Generating summary...'):
-                        summary = generate_summary(prompt_summary, transcript)
-                        st.subheader("Summary")
-                        st.write(summary)
-
-                    with st.spinner('Generating questions...'):
-                        questions = generate_summary(prompt_questions, transcript)
-                        st.subheader("MCQ Questions")
-                        st.write(questions)
-                except Exception as e:
-                    st.error(f"Error fetching transcript: {e}")
+                    if option_notes:
+                        prompt_notes = "Act as a summarizer and write detailed handwritten notes based on the input given."
+                        with st.spinner('Generating notes...'):
+                            notes = generate_summary(prompt_notes, transcript)
+                            st.subheader("Complete Notes")
+                            st.write(notes)
+            else:
+                st.warning("Invalid YouTube URL. Please enter a valid URL.")
         else:
-            st.warning("Invalid YouTube URL. Please enter a valid URL.")
-    else:
-        st.warning("Please enter a YouTube video URL.")
+            st.warning("Please enter a YouTube video URL.")
+
+if __name__ == "__main__":
+    run_app()
