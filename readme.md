@@ -1,7 +1,3 @@
-Here’s a comprehensive `README.md` file tailored for your GitHub repository. This file provides a clear guide for anyone who wishes to understand, set up, and run the project locally.
-
----
-
 # YouTube Transcript Summarizer
 
 Welcome to the **YouTube Transcript Summarizer**, a Streamlit application that leverages AI to extract, summarize, and generate questions from YouTube video transcripts. This project is designed to provide users with summaries, multiple-choice questions (MCQs), and detailed notes from the transcripts of YouTube videos. The application is built with Python and utilizes Google Generative AI for natural language processing tasks.
@@ -164,7 +160,3 @@ Contributions are welcome! If you have ideas for improvements or new features, f
 ## Contact
 
 If you have any questions, feel free to reach out to me via [LinkedIn](https://www.linkedin.com/in/ashis-tripathy-337030218/) or open an issue on GitHub.
-
----
-
-Copy and paste the above `README.md` content into your project's readme file to ensure it provides a clear, concise, and informative guide to anyone visiting your repository. Adjust any personal contact information or links as necessary.
