@@ -51,14 +51,7 @@ def run_app():
                             st.write(summary)
 
                     if option_mcq:
-                        prompt_questions = ("You have given the caption of a youtube video, Act as a question "
-                                            "generator based on that you need to"
-                                            "prepare 20-30 questions as possible with answer releted to "
-                                            "the topic discussed avoid the term video, speaker and youtube channel"
-                                            "question format should be below \n “Question 1 * A) option A "
-                                            "format * B) Option B * C) "
-                                            "Option C * D) Option D * "
-                                            "**Answer:** B”")
+                        prompt_questions = "Act as a summarizer and write 20-25 MCQ questions with answers based on the input given"
 
                         with st.spinner('Generating MCQ questions...'):
                             questions = generate_summary(prompt_questions, transcript)
@@ -66,11 +59,7 @@ def run_app():
                             st.write(questions)
 
                     if option_notes:
-                        prompt_notes = ("You have given the caption of a youtube video Act as a summarizer and write "
-                                        "detailed notes based on the input given. The notes should be comprehensive "
-                                        "and cover every aspect of the content, ensuring that nothing important is "
-                                        "missed. Each section should be clearly outlined with all the necessary "
-                                        "details and explanations, not just the main points.")
+                        prompt_notes = "Act as a summarizer and write detailed handwritten notes based on the input given."
                         with st.spinner('Generating notes...'):
                             notes = generate_summary(prompt_notes, transcript)
                             st.subheader("Complete Notes")
