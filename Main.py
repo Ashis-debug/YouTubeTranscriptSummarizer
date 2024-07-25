@@ -1,20 +1,21 @@
 # Main.py
-
 import streamlit as st
-from youtube_api.youtube import extract_video_id, get_youtube_transcript
+from youtube_api.youtube import extract_video_id, get_youtube_transcript, get_video_detail, get_subtitle_text
 from youtube_api.ai import generate_summary
 from youtube_api.ui import render_ui
 
-API_KEY="AIzaSyDcLJiSbmkhZAmb2wfq4h5PPHU6lPCPysU"
+API_KEY = "AIzaSyDcLJiSbmkhZAmb2wfq4h5PPHU6lPCPysU"
 
 if API_KEY is None:
     st.error("Please set the API key in the environment variable 'GENAI_API_KEY'")
 else:
     import google.generativeai as genai
+
     genai.configure(api_key=API_KEY)
 
 # Render UI
 render_ui()
+
 
 # Application Logic
 def run_app():
@@ -33,7 +34,8 @@ def run_app():
         if youtube_url:
             video_id = extract_video_id(youtube_url)
             if video_id:
-                transcript = get_youtube_transcript(video_id)
+                video_detail = get_video_detail(video_id)
+                transcript = get_subtitle_text(video_detail)
 
                 if option_summary + option_mcq + option_notes > 1:
                     st.error("Please select only one option at a time.")
@@ -41,21 +43,34 @@ def run_app():
                     st.info("Select an option to proceed.")
                 else:
                     if option_summary:
-                        prompt_summary = "Act as a summarizer and write the summary as a paragraph for the input with at least 500 words"
+                        prompt_summary = ("Act as a summarizer and write the summary as a paragraph for the input with "
+                                          "at least 1000 words")
                         with st.spinner('Generating summary...'):
                             summary = generate_summary(prompt_summary, transcript)
                             st.subheader("Summary")
                             st.write(summary)
 
                     if option_mcq:
-                        prompt_questions = "Act as a summarizer and write 20-25 MCQ questions based on the input given"
+                        prompt_questions = ("You have given the caption of a youtube video, Act as a question "
+                                            "generator based on that you need to"
+                                            "prepare 20-30 questions as possible with answer releted to "
+                                            "the topic discussed avoid the term video, speaker and youtube channel"
+                                            "question format should be below \n “Question 1 * A) option A "
+                                            "format * B) Option B * C) "
+                                            "Option C * D) Option D * "
+                                            "**Answer:** B”")
+
                         with st.spinner('Generating MCQ questions...'):
                             questions = generate_summary(prompt_questions, transcript)
                             st.subheader("MCQ Questions")
                             st.write(questions)
 
                     if option_notes:
-                        prompt_notes = "Act as a summarizer and write detailed handwritten notes based on the input given."
+                        prompt_notes = ("You have given the caption of a youtube video Act as a summarizer and write "
+                                        "detailed notes based on the input given. The notes should be comprehensive "
+                                        "and cover every aspect of the content, ensuring that nothing important is "
+                                        "missed. Each section should be clearly outlined with all the necessary "
+                                        "details and explanations, not just the main points.")
                         with st.spinner('Generating notes...'):
                             notes = generate_summary(prompt_notes, transcript)
                             st.subheader("Complete Notes")
@@ -64,6 +79,7 @@ def run_app():
                 st.warning("Invalid YouTube URL. Please enter a valid URL.")
         else:
             st.warning("Please enter a YouTube video URL.")
+
 
 if __name__ == "__main__":
     run_app()
